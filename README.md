@@ -36,3 +36,7 @@ name TEXT NOT NULL,
 info BLOB NOT NULL,
 FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE)
 ```
+
+Превью
+
+![Preview](preview.png)

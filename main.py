@@ -41,6 +41,7 @@ def start(msg: Message):
     if check_user(msg.from_user.id):
         bot.send_message(msg.chat.id, 'Вы уже зарегистрированы, воспользуйтесь командой /menu')
     else:
+        active[msg.from_user.id] = True
         bot.send_message(msg.chat.id, 'Придумайте мастер-пароль:')
         bot.register_next_step_handler(msg, register)
 
@@ -75,13 +76,16 @@ def menu(msg: Message):
 
 @bot.message_handler(commands=['auth'])
 def auth(msg: Message):
-    if not bool(status.get(msg.from_user.id, False)):
-        active[msg.from_user.id] = True
-        reg_attemps[msg.from_user.id] = 3
-        bot.send_message(msg.chat.id, 'Отправьте мастер-пароль:')
-        bot.register_next_step_handler(msg, authorization)
+    if get_data(msg.from_user.id) is not None:
+        if not bool(status.get(msg.from_user.id, False)):
+            active[msg.from_user.id] = True
+            reg_attemps[msg.from_user.id] = 3
+            bot.send_message(msg.chat.id, 'Отправьте мастер-пароль:')
+            bot.register_next_step_handler(msg, authorization)
+        else:
+            bot.send_message(msg.chat.id, 'Вы уже авторизованы')
     else:
-        bot.send_message(msg.chat.id, 'Вы уже авторизованы')
+        bot.send_message(msg.chat.id, 'Вы ещё не зарегистрированы, воспользуйтесь командой /start')
 
 
 def authorization(msg: Message):
@@ -128,7 +132,7 @@ def help(msg: Message):
 
 @bot.callback_query_handler(lambda call: True)
 def callback(call: CallbackQuery):
-    if active[call.from_user.id]:
+    if active.get(call.from_user.id):
         bot.answer_callback_query(call.id, 'Завершите текущее взаимодействие')
         return
     if call.data == 'help':
